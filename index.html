@@ -40,7 +40,7 @@
         // Environment
         const envGen = new THREE.PMREMGenerator(renderer);
         envGen.compileEquirectangularShader();
-        new THREE.EXRLoader().load("model/sky.exr", tex => {
+        new THREE.EXRLoader().load("https://paulthebeatles.github.io/Port/sky.exr", tex => {
             const envTex = envGen.fromEquirectangular(tex).texture;
             scene.environment = envTex;
             scene.background = envTex;
@@ -58,7 +58,7 @@
         // โหลด GLTF Model
         const clickable = [];
         const loader = new THREE.GLTFLoader();
-        loader.load("model/Port2.glb", gltf => {
+        loader.load("https://paulthebeatles.github.io/Port/Port3.glb", gltf => {
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) {
                     obj.castShadow = true;
