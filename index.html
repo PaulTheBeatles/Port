@@ -47,14 +47,6 @@
             tex.dispose(); envGen.dispose();
         });
 
-        // GUI
-        // const gui = new dat.GUI({ width: 300 });
-        // const lightUI = gui.addFolder("Light XYZ");
-        // lightUI.add(sunLight.position, "x", -20, 20, 0.1);
-        // lightUI.add(sunLight.position, "y", -20, 20, 0.1);
-        // lightUI.add(sunLight.position, "z", -20, 20, 0.1);
-        // lightUI.open();
-
         // โหลด GLTF Model
         const clickable = [];
         const loader = new THREE.GLTFLoader();
@@ -64,21 +56,10 @@
                     obj.castShadow = true;
                     obj.receiveShadow = true;
                 }
-                // สมมติวัตถุชื่อ Cat_Raycaster
                 if (obj.name === "Cat_Raycaster") clickable.push(obj);
             });
             scene.add(gltf.scene);
         });
-
-        // พื้น
-        const groundTex = new THREE.TextureLoader().load("https://paulthebeatles.github.io/Senku/rocky_terrain_02_diff_1k.jpg", t => {
-            t.wrapS = t.wrapT = THREE.RepeatWrapping;
-        });
-        const groundMat = new THREE.MeshStandardMaterial({ map: groundTex });
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
 
         // Raycaster
         const raycaster = new THREE.Raycaster();
@@ -102,11 +83,9 @@
                 if (clicked.name === "Cat_Raycaster") {
                     const view = VIEWS[clicked.name];
                     if (view) {
-                        // ย้ายกล้องแบบทันที (ถ้าอยาก smooth later ใช้ lerp)
                         camera.position.copy(view.pos);
                         controls.target.copy(view.tar);
                         controls.update();
-
                     }
                 }
             }
