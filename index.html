@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Room_Port</title>
+    <title>Home_Port</title>
     <style>
         body {
             margin: 0;
@@ -16,25 +16,32 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
+
     <script>
+        // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
+        // Scene
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(30, 40, 30);
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        // แสง
+        // Camera
+        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(100, 50, 50);
+
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 5, 0);
+
+        // Light
         const ambient = new THREE.AmbientLight(0x808080, 0.3);
         scene.add(ambient);
-        const sunLight = new THREE.DirectionalLight(0xffeedd, 0.5);
+        const sunLight = new THREE.DirectionalLight(0xffeedd, 0.8);
         sunLight.castShadow = true;
-        sunLight.position.set(10, 5, 10);
+        sunLight.position.set(10, 20, 10);
         scene.add(sunLight);
 
         // Environment
@@ -44,19 +51,36 @@
             const envTex = envGen.fromEquirectangular(tex).texture;
             scene.environment = envTex;
             scene.background = envTex;
-            tex.dispose(); envGen.dispose();
+            tex.dispose();
+            envGen.dispose();
         });
 
-        // โหลด GLTF Model
+        // Preset มุมกล้อง
+        const VIEWS = {
+            Cat_Raycaster: { pos: new THREE.Vector3(50, 15, 10), tar: new THREE.Vector3(0, 5, 0) },
+            AboutMe: { pos: new THREE.Vector3(1, 1, 1), tar: new THREE.Vector3(0, 5, 0) }
+        };
+
+        // โหลด GLTF
         const clickable = [];
         const loader = new THREE.GLTFLoader();
-        loader.load("https://paulthebeatles.github.io/Port/Port3.glb", gltf => {
+        loader.load("https://paulthebeatles.github.io/Port/Port4.glb", gltf => {
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) {
                     obj.castShadow = true;
                     obj.receiveShadow = true;
                 }
-                if (obj.name === "Cat_Raycaster") clickable.push(obj);
+                if (obj.name === "Cat_Raycaster" || obj.name === "AboutMe") clickable.push(obj);
+
+                // ถ้าเจอ MyName -> ตั้ง target และ pos กล้อง
+                if (obj.name === "MyName") {
+                    const worldPos = new THREE.Vector3();
+                    obj.getWorldPosition(worldPos);
+                    console.log("เจอ MyName ที่:", worldPos);
+
+                    VIEWS.AboutMe.tar.copy(worldPos);
+                    VIEWS.AboutMe.pos.copy(worldPos).add(new THREE.Vector3(0, 0, 20));
+                }
             });
             scene.add(gltf.scene);
         });
@@ -65,39 +89,52 @@
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
 
-        // พรีเซ็ตตำแหน่งกล้อง
-        const VIEWS = {
-            Cat_Raycaster: { pos: new THREE.Vector3(15, 10, 15), tar: new THREE.Vector3(0, 0, 0) }
-        };
+        // ตัวแปร lerp
+        let lerpActive = false;
+        let lerpStartPos = new THREE.Vector3();
+        let lerpStartTar = new THREE.Vector3();
+        let lerpEndPos = new THREE.Vector3();
+        let lerpEndTar = new THREE.Vector3();
+        let lerpAlpha = 0;
 
         function onPick(event) {
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(pointer, camera);
-            const intersects = raycaster.intersectObjects(scene.children, true);
+            const intersects = raycaster.intersectObjects(clickable, true);
+
             if (intersects.length > 0) {
                 let clicked = intersects[0].object;
-                while (clicked.parent && clicked.name !== "Cat_Raycaster") {
-                    clicked = clicked.parent;
-                }
-                if (clicked.name === "Cat_Raycaster") {
+                while (clicked.parent && !VIEWS[clicked.name]) clicked = clicked.parent;
+                if (VIEWS[clicked.name]) {
                     const view = VIEWS[clicked.name];
-                    if (view) {
-                        camera.position.copy(view.pos);
-                        controls.target.copy(view.tar);
-                        controls.update();
-                    }
+                    lerpStartPos.copy(camera.position);
+                    lerpStartTar.copy(controls.target);
+                    lerpEndPos.copy(view.pos);
+                    lerpEndTar.copy(view.tar);
+                    lerpAlpha = 0;
+                    lerpActive = true;
                 }
             }
         }
-
         renderer.domElement.addEventListener('click', onPick);
 
         // Loop
-        (function loop() {
+        function loop() {
+            if (lerpActive) {
+                lerpAlpha += 0.02;
+                if (lerpAlpha >= 1) {
+                    lerpAlpha = 1;
+                    lerpActive = false;
+                }
+                camera.position.lerpVectors(lerpStartPos, lerpEndPos, lerpAlpha);
+                controls.target.lerpVectors(lerpStartTar, lerpEndTar, lerpAlpha);
+            }
+            controls.update();
             renderer.render(scene, camera);
             requestAnimationFrame(loop);
-        })();
+        }
+        loop();
 
         // Resize
         window.addEventListener('resize', () => {
