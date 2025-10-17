@@ -10,6 +10,63 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
+        /* Loading Screen Style (Full Screen) */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111111;
+            /* Dark background for a night theme */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s;
+        }
+
+        #loadingText {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        #progressBar {
+            width: 250px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #progressBarInner {
+            height: 100%;
+            width: 0%;
+            background-color: #05e117;
+            transition: width 0.1s ease-out;
+        }
+
+        /* --- NEW: Small Loading Indicator Style (Top Right) --- */
+        #smallLoadingIndicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #05e117;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            /* Hidden by default */
+            z-index: 10000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        /* -------------------------------------------------------- */
+
         /* Panel Project */
         #projectPanel {
             position: absolute;
@@ -193,6 +250,13 @@
 </head>
 
 <body>
+    <div id="loadingOverlay">
+        <div id="progressBar">
+            <div id="progressBarInner"></div>
+        </div>
+        <div id="loadingText">Loading Scene...</div>
+    </div>
+    <div id="smallLoadingIndicator">Loading Environment...</div>
     <button id="homeBtn">🏠 Home</button>
 
     <div id="projectPanel">
@@ -248,6 +312,57 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
+        // *** NEW: Second Loading Manager for runtime HDRI loading ***
+        const hdriLoadingManager = new THREE.LoadingManager();
+        const smallLoadingIndicator = document.getElementById('smallLoadingIndicator');
+
+        hdriLoadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
+            smallLoadingIndicator.style.display = 'block';
+        };
+
+        hdriLoadingManager.onLoad = function () {
+            smallLoadingIndicator.style.display = 'none';
+        };
+        // *** END: Second Loading Manager Setup ***
+
+
+        // *** NEW: Loading Manager Setup for initial scene load ***
+        const loadingManager = new THREE.LoadingManager();
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressBarInner = document.getElementById('progressBarInner');
+        const loadingText = document.getElementById('loadingText');
+
+        loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
+            const progress = (itemsLoaded / itemsTotal) * 100;
+            progressBarInner.style.width = progress + '%';
+            loadingText.textContent = `Loading... ${Math.floor(progress)}%`;
+        };
+
+        loadingManager.onLoad = function () {
+            // Fade out the loading screen once everything is loaded
+            loadingOverlay.style.opacity = 0;
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 1000); // 1 second for the fade-out transition
+
+            // Prompt user to interact to start background music
+            window.addEventListener('click', () => {
+                if (!musicPlaying) {
+                    bgMusic.play().catch(() => { });
+                    musicPlaying = true;
+                }
+            }, { once: true });
+        };
+
+        // --- All Loaders now use the appropriate loadingManager ---
+        const exrLoader = new THREE.EXRLoader(loadingManager);
+        // RGBELoader uses the HDRI manager for cat's environment change
+        const rgbeLoader = new THREE.RGBELoader(hdriLoadingManager); 
+        const gltfLoader = new THREE.GLTFLoader(loadingManager);
+        const audioLoader = new THREE.AudioLoader(loadingManager);
+        // *** END: Initial Loading Manager Setup ***
+
+
         // === Renderer / Scene / Camera ===
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -280,7 +395,8 @@
         // === Environment ===
         const envGen = new THREE.PMREMGenerator(renderer);
         envGen.compileEquirectangularShader();
-        new THREE.EXRLoader().load("https://paulthebeatles.github.io/Port/modern_evening_street_1k.exr", tex => {
+        // Initial environment load
+        exrLoader.load("https://paulthebeatles.github.io/Port/modern_evening_street_1k.exr", tex => {
             const envTex = envGen.fromEquirectangular(tex).texture;
             scene.environment = envTex;
             scene.background = envTex;
@@ -296,13 +412,10 @@
         const clickable = [];
         let catObject = null;
         let creditRollObject = null;
-
-        // *** สถานะสำหรับควบคุมการเปลี่ยนแปลง Environment และข้อความ Cat ***
         let envChanged = false;
 
         // === Load GLTF ===
-        const loader = new THREE.GLTFLoader();
-        loader.load("https://paulthebeatles.github.io/Port/PortFinally.glb", gltf => {
+        gltfLoader.load("https://paulthebeatles.github.io/Port/PortFinally.glb", gltf => {
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) obj.castShadow = obj.receiveShadow = true;
                 if (["AboutMe", "Cat_Raycaster", "MyProject", "MyCer", "Telescope", "Credit"].includes(obj.name)) clickable.push(obj);
@@ -322,9 +435,9 @@
                 if (obj.name === "CreditRoll") {
                     const creditPos = new THREE.Vector3();
                     obj.getWorldPosition(creditPos);
-                    VIEWS.Credit = { 
-                        tar: creditPos.clone(), 
-                        pos: creditPos.clone().add(new THREE.Vector3(28, 48, 0)) 
+                    VIEWS.Credit = {
+                        tar: creditPos.clone(),
+                        pos: creditPos.clone().add(new THREE.Vector3(28, 48, 0))
                     };
                 }
             });
@@ -338,7 +451,8 @@
         const listener = new THREE.AudioListener();
         camera.add(listener);
         const catSound = new THREE.PositionalAudio(listener);
-        new THREE.AudioLoader().load("https://paulthebeatles.github.io/Port/Meow.mp3", buffer => {
+        // Cat sound load
+        audioLoader.load("https://paulthebeatles.github.io/Port/Meow.mp3", buffer => {
             catSound.setBuffer(buffer);
             catSound.setRefDistance(5);
             catSound.setVolume(5);
@@ -347,12 +461,7 @@
         const bgMusic = document.getElementById('bgMusic');
         let musicPlaying = false;
         bgMusic.volume = 0.5;
-        window.addEventListener('click', () => {
-            if (!musicPlaying) {
-                bgMusic.play().catch(() => { });
-                musicPlaying = true;
-            }
-        }, { once: true });
+
         document.getElementById('toggleMusic').addEventListener('click', () => {
             if (bgMusic.paused) bgMusic.play();
             else bgMusic.pause();
@@ -450,15 +559,14 @@
                 if (clicked.name === "Cat_Raycaster") {
                     if (!clicked.children.includes(catSound)) clicked.add(catSound);
                     catSound.play();
-                    
+
                     const speech = document.getElementById("catSpeech");
                     const choice = document.getElementById("catChoice");
-                    
+
                     speech.textContent = "Meow!";
                     speech.style.display = "block";
                     speech.style.opacity = 1;
-                    
-                    // *** แก้ไขการแสดงผลตามสถานะ envChanged ***
+
                     if (envChanged) {
                         // Environment ถูกเปลี่ยนแล้ว
                         speech.textContent = "Meow! Find the telescope";
@@ -477,7 +585,6 @@
                             }, 500);
                         }, 2000);
                     }
-                    // *** สิ้นสุดการแก้ไข ***
 
                 } else if (clicked.name === "MyProject") {
                     document.getElementById("projectPanel").style.display = "block";
@@ -532,7 +639,7 @@
         });
 
         // === Cat Choice Yes/No ===
-        
+
         document.getElementById("catYes").addEventListener("click", () => {
             document.getElementById("catChoice").style.display = "none";
             if (!envChanged) {
@@ -540,14 +647,15 @@
                 const pmremGen = new THREE.PMREMGenerator(renderer);
                 pmremGen.compileEquirectangularShader();
 
-                new THREE.RGBELoader().setDataType(THREE.UnsignedByteType).load(hdrUrl, tex => {
+                // *** Use rgbeLoader with hdriLoadingManager (already done at the top) ***
+                rgbeLoader.setDataType(THREE.UnsignedByteType).load(hdrUrl, tex => {
                     const envMap = pmremGen.fromEquirectangular(tex).texture;
                     scene.environment = envMap;
                     scene.background = envMap;
                     tex.dispose();
                     pmremGen.dispose();
 
-                    envChanged = true; // *** ตั้งค่าสถานะว่า Environment ถูกเปลี่ยนแล้ว ***
+                    envChanged = true;
 
                     const speech = document.getElementById("catSpeech");
                     speech.textContent = "Meow! Find the telescope";
@@ -571,7 +679,7 @@
             if (telescopeObj) {
                 const telescopePos = new THREE.Vector3();
                 telescopeObj.getWorldPosition(telescopePos);
-                
+
                 lerpStartPos.copy(camera.position);
                 lerpStartTar.copy(controls.target);
                 lerpEndPos.set(telescopePos.x, telescopePos.y + 80, telescopePos.z);
