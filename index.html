@@ -24,9 +24,9 @@
             border-radius: 15px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
             backdrop-filter: blur(6px);
+            pointer-events: auto;
         }
 
-        /* Close Button Panel */
         #closePanel {
             position: absolute;
             top: 12px;
@@ -50,13 +50,15 @@
         }
 
         /* Cat Speech Bubble */
-        #catSpeech {
+        #catSpeech,
+        #envPopup,
+        #telescopePopup {
             position: absolute;
             bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 20px;
             font-weight: 600;
             font-family: 'Segoe UI', sans-serif;
@@ -64,8 +66,57 @@
             opacity: 0;
             transition: opacity 0.5s;
             z-index: 1000;
-            pointer-events: none;
+            pointer-events: auto;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Cat Yes/No Choice */
+        #catChoice,
+        #envPopupButtons,
+        #telescopeChoice {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: none;
+            z-index: 1000;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            pointer-events: auto;
+        }
+
+        #catChoice button,
+        #envPopupButtons button,
+        #telescopeChoice button {
+            margin-left: 8px;
+            padding: 6px 14px;
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #catChoice button:hover,
+        #envPopupButtons button:hover,
+        #telescopeChoice button:hover {
+            opacity: 0.85;
+        }
+
+        #catChoice button#catYes,
+        #telescopeChoice button#telescopeYes,
+        #envPopupButtons button#envYes {
+            background: #05e117;
+            color: white;
+        }
+
+        #catChoice button#catNo,
+        #telescopeChoice button#telescopeNo,
+        #envPopupButtons button#envNo {
+            background: #de1304;
+            color: white;
         }
 
         /* Toggle Buttons Container */
@@ -79,7 +130,6 @@
             z-index: 1000;
         }
 
-        /* Toggle Buttons Style */
         .toggleBtn {
             padding: 12px 20px;
             font-size: 16px;
@@ -97,7 +147,6 @@
             background: rgba(255, 255, 255, 1);
         }
 
-        /* Icon inside button */
         .toggleBtn span {
             margin-right: 8px;
         }
@@ -112,8 +161,8 @@
             font-weight: 600;
             border: none;
             border-radius: 12px;
-            background: rgba(255,255,255,0.9);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             cursor: pointer;
             z-index: 1000;
             transition: transform 0.2s, background 0.2s;
@@ -121,10 +170,9 @@
 
         #homeBtn:hover {
             transform: translateY(-2px);
-            background: rgba(255,255,255,1);
+            background: rgba(255, 255, 255, 1);
         }
 
-        /* Responsive for small screens */
         @media screen and (max-width: 480px) {
             #projectPanel {
                 width: 90%;
@@ -145,65 +193,62 @@
 </head>
 
 <body>
-    <!-- Home Button -->
     <button id="homeBtn">🏠 Home</button>
 
-    <!-- Project Panel -->
     <div id="projectPanel">
         <button id="closePanel">✖</button>
         <h2>My Academic Projects</h2>
         <ul>
-            <li><strong>Java Construction Project</strong> (Oct 2024)<br>
-                - Developed a desktop To-Do List application using Java<br>
-                - Implemented features for adding, updating, and deleting tasks
-            </li>
-            <li><strong>Database System Project</strong> (Mar 2025)<br>
-                - Designed ER diagrams and Normalization of Enrollment System<br>
-                - Created SQL queries for Enrollment System using MySQL
-            </li>
-            <li><strong>Image and Video Processing Project</strong> (Mar 2025)<br>
-                - Collected an image dataset of drone for sky object detection<br>
-                - Developed object detection algorithms using MATLAB
-            </li>
-            <li><strong>Pre-Cooperative Education Project</strong> (Sep 2025)<br>
-                - Built a mobile application Fitness Tracking using Flutter, Node.js, and MySQL<br>
-                - Implemented features for Calendar, Google Map, Food Nutrition Tracking, and Weather Report
-            </li>
-            <li><strong>Web and Technology Project</strong> (Sep 2025)<br>
-                - Developed a responsive novel reading website using HTML, CSS, Bootstrap, Node.js, and MySQL<br>
-                - Designed and implemented database schema for storing novels, chapters, and user accounts
-            </li>
+            <li><strong>Java Construction Project</strong> (Oct 2024)<br>- Developed a desktop To-Do List application using Java<br>- Implemented features for adding, updating, and deleting tasks</li>
+            <li><strong>Database System Project</strong> (Mar 2025)<br>- Designed ER diagrams and Normalization of Enrollment System<br>- Created SQL queries for Enrollment System using MySQL</li>
+            <li><strong>Image and Video Processing Project</strong> (Mar 2025)<br>- Collected an image dataset of drone for sky object detection<br>- Developed object detection algorithms using MATLAB</li>
+            <li><strong>Pre-Cooperative Education Project</strong> (Sep 2025)<br>- Built a mobile application Fitness Tracking using Flutter, Node.js, and MySQL<br>- Implemented features for Calendar, Google Map, Food Nutrition Tracking, and Weather Report</li>
+            <li><strong>Web and Technology Project</strong> (Sep 2025)<br>- Developed a responsive novel reading website using HTML, CSS, Bootstrap, Node.js, and MySQL<br>- Designed and implemented database schema for storing novels, chapters, and user accounts</li>
         </ul>
     </div>
 
-    <!-- Cat Speech -->
     <div id="catSpeech"></div>
 
-    <!-- Toggle Buttons -->
+    <div id="catChoice">
+        <span>Wanna see something cool?</span>
+        <button id="catYes">Yes</button>
+        <button id="catNo">No</button>
+    </div>
+
+    <div id="telescopeChoice">
+        <span>Wanna equip telescope?</span>
+        <button id="telescopeYes">Yes</button>
+        <button id="telescopeNo">No</button>
+    </div>
+
+    <div id="envPopup">😺 Environment จงเปลี่ยนนนนน!</div>
+    <div id="envPopupButtons">
+        <button id="envYes">Yes</button>
+        <button id="envNo">No</button>
+    </div>
+
     <div class="toggleButtons">
         <button id="toggleSnow" class="toggleBtn"><span>❄️</span> Snow</button>
         <button id="toggleLight" class="toggleBtn"><span>💡</span> Light</button>
     </div>
 
-    <!-- Music Toggle Button -->
     <div class="toggleButtons" style="left:auto; right:20px;">
         <button id="toggleMusic" class="toggleBtn"><span>🎵</span> Music</button>
     </div>
 
-    <!-- Background Music -->
     <audio id="bgMusic" loop>
         <source src="https://paulthebeatles.github.io/Port/Yuki&Hana.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
-    <!-- Three.js Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
-        // Renderer
+        // === Renderer / Scene / Camera ===
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
@@ -212,20 +257,17 @@
         renderer.toneMappingExposure = 1.5;
         document.body.appendChild(renderer.domElement);
 
-        // Scene & Camera
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(100, 50, 50);
 
-        // Save initial position for Home
         const initialCamPos = camera.position.clone();
-        const initialTarget = new THREE.Vector3(0,5,0);
+        const initialTarget = new THREE.Vector3(0, 5, 0);
 
-        // Controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.target.copy(initialTarget);
 
-        // Lights
+        // === Lights ===
         const ambientLight = new THREE.AmbientLight(0x808080, 0.2);
         scene.add(ambientLight);
         const sunLight = new THREE.DirectionalLight(0xffeedd, 0.5);
@@ -235,7 +277,7 @@
         const nightAmbient = new THREE.AmbientLight(0x223344, 0.1);
         scene.add(nightAmbient);
 
-        // Environment
+        // === Environment ===
         const envGen = new THREE.PMREMGenerator(renderer);
         envGen.compileEquirectangularShader();
         new THREE.EXRLoader().load("https://paulthebeatles.github.io/Port/modern_evening_street_1k.exr", tex => {
@@ -246,7 +288,6 @@
             envGen.dispose();
         });
 
-        // Preset Camera Views
         const VIEWS = {
             AboutMe: { pos: new THREE.Vector3(1, 1, 1), tar: new THREE.Vector3(0, 5, 10) },
             MyProject: { pos: new THREE.Vector3(0, 10, 20), tar: new THREE.Vector3(0, 0, 0) }
@@ -254,39 +295,46 @@
 
         const clickable = [];
         let catObject = null;
+        let creditRollObject = null;
 
-        // Load main GLTF
+        // *** สถานะสำหรับควบคุมการเปลี่ยนแปลง Environment และข้อความ Cat ***
+        let envChanged = false;
+
+        // === Load GLTF ===
         const loader = new THREE.GLTFLoader();
-        loader.load("https://paulthebeatles.github.io/Port/Port5.glb", gltf => {
+        loader.load("https://paulthebeatles.github.io/Port/PortFinally.glb", gltf => {
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) obj.castShadow = obj.receiveShadow = true;
-                if (["AboutMe", "Cat_Raycaster", "MyProject"].includes(obj.name)) clickable.push(obj);
+                if (["AboutMe", "Cat_Raycaster", "MyProject", "MyCer", "Telescope", "Credit"].includes(obj.name)) clickable.push(obj);
                 if (obj.name === "Cat_Raycaster") catObject = obj;
+                if (obj.name === "CreditRoll") creditRollObject = obj;
                 if (obj.name === "MyName") {
                     const worldPos = new THREE.Vector3();
                     obj.getWorldPosition(worldPos);
                     VIEWS.AboutMe.tar.copy(worldPos);
                     VIEWS.AboutMe.pos.copy(worldPos).add(new THREE.Vector3(0, 0, 10));
                 }
+                if (obj.name === "Cer") {
+                    const cerPos = new THREE.Vector3();
+                    obj.getWorldPosition(cerPos);
+                    VIEWS.MyCer = { tar: cerPos.clone(), pos: cerPos.clone().add(new THREE.Vector3(10, 10, 0)) };
+                }
+                if (obj.name === "CreditRoll") {
+                    const creditPos = new THREE.Vector3();
+                    obj.getWorldPosition(creditPos);
+                    VIEWS.Credit = { 
+                        tar: creditPos.clone(), 
+                        pos: creditPos.clone().add(new THREE.Vector3(28, 48, 0)) 
+                    };
+                }
             });
             scene.add(gltf.scene);
         });
 
-        const loader2 = new THREE.GLTFLoader();
-        loader2.load("model/.glb", gltf => {
-            const newModel = gltf.scene;
-            newModel.position.set(0, 0, 0);
-            newModel.rotation.set(0, 0, 0);
-            newModel.scale.set(1, 1, 1);
-            newModel.traverse(obj => { if (obj.isMesh) obj.castShadow = obj.receiveShadow = true; });
-            scene.add(newModel);
-        });
-
-        // Raycaster
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
 
-        // 3D Cat Sound
+        // === Audio ===
         const listener = new THREE.AudioListener();
         camera.add(listener);
         const catSound = new THREE.PositionalAudio(listener);
@@ -296,36 +344,28 @@
             catSound.setVolume(5);
         });
 
-        // Background Music
         const bgMusic = document.getElementById('bgMusic');
         let musicPlaying = false;
         bgMusic.volume = 0.5;
-
-        // Autoplay music on first click
         window.addEventListener('click', () => {
             if (!musicPlaying) {
-                bgMusic.play().catch(() => {});
+                bgMusic.play().catch(() => { });
                 musicPlaying = true;
             }
         }, { once: true });
-
-        // Toggle Music Button
         document.getElementById('toggleMusic').addEventListener('click', () => {
-            if (bgMusic.paused) {
-                bgMusic.play();
-            } else {
-                bgMusic.pause();
-            }
+            if (bgMusic.paused) bgMusic.play();
+            else bgMusic.pause();
         });
 
-        // Lerp variables
+        // === Lerp ===
         let lerpActive = false, lerpAlpha = 0;
         const lerpStartPos = new THREE.Vector3();
         const lerpStartTar = new THREE.Vector3();
         const lerpEndPos = new THREE.Vector3();
         const lerpEndTar = new THREE.Vector3();
 
-        // Snow Particle System
+        // === Snow ===
         const snowCount = 800;
         const snowGeometry = new THREE.BufferGeometry();
         const snowPositions = [];
@@ -338,15 +378,10 @@
         scene.add(snowParticles);
 
         let snowEnabled = true;
-        document.getElementById("toggleSnow").addEventListener("click", () => {
-            snowEnabled = !snowEnabled;
-            snowParticles.visible = snowEnabled;
-        });
+        document.getElementById("toggleSnow").addEventListener("click", () => { snowEnabled = !snowEnabled; snowParticles.visible = snowEnabled; });
 
         let lightOn = true;
-        document.getElementById("toggleLight").addEventListener("click", () => {
-            lightOn = !lightOn;
-        });
+        document.getElementById("toggleLight").addEventListener("click", () => { lightOn = !lightOn; });
 
         function updateSnow() {
             if (!snowEnabled) return;
@@ -374,6 +409,35 @@
             }
         }
 
+        // === Telescope Mode ===
+        let telescopeMode = false;
+        let telescopePivot = new THREE.Object3D();
+        let isDragging = false;
+        let previousMouse = { x: 0, y: 0 };
+
+        window.addEventListener('mousedown', (e) => { if (telescopeMode) { isDragging = true; previousMouse.x = e.clientX; previousMouse.y = e.clientY; } });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', (e) => {
+            if (telescopeMode && isDragging) {
+                const deltaX = (e.clientX - previousMouse.x) * 0.005;
+                const deltaY = (e.clientY - previousMouse.y) * 0.005;
+                telescopePivot.rotation.y -= deltaX;
+                telescopePivot.rotation.x -= deltaY;
+                telescopePivot.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, telescopePivot.rotation.x));
+                previousMouse.x = e.clientX;
+                previousMouse.y = e.clientY;
+            }
+        });
+
+        function exitTelescopeMode() {
+            if (!telescopeMode) return;
+            scene.add(camera);
+            telescopePivot.remove(camera);
+            controls.enabled = true;
+            telescopeMode = false;
+        }
+
+        // === Picking ===
         function onPick(event) {
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -381,23 +445,42 @@
             const intersects = raycaster.intersectObjects(clickable, true);
             if (intersects.length > 0) {
                 let clicked = intersects[0].object;
-                while (clicked.parent && !VIEWS[clicked.name] && clicked.name !== "Cat_Raycaster") clicked = clicked.parent;
+                while (clicked.parent && !VIEWS[clicked.name] && clicked.name !== "Cat_Raycaster" && clicked.name !== "Telescope" && clicked.name !== "Credit") clicked = clicked.parent;
 
                 if (clicked.name === "Cat_Raycaster") {
                     if (!clicked.children.includes(catSound)) clicked.add(catSound);
                     catSound.play();
+                    
                     const speech = document.getElementById("catSpeech");
+                    const choice = document.getElementById("catChoice");
+                    
                     speech.textContent = "Meow!";
                     speech.style.display = "block";
                     speech.style.opacity = 1;
-                    setTimeout(() => {
-                        speech.style.opacity = 0;
-                        setTimeout(() => { speech.style.display = "none"; }, 500);
-                    }, 2000);
-                } else if (clicked.name === "MyProject") {
-                    const panel = document.getElementById("projectPanel");
-                    panel.style.display = "block";
+                    
+                    // *** แก้ไขการแสดงผลตามสถานะ envChanged ***
+                    if (envChanged) {
+                        // Environment ถูกเปลี่ยนแล้ว
+                        speech.textContent = "Meow! Find the telescope";
+                        setTimeout(() => {
+                            speech.style.opacity = 0;
+                            setTimeout(() => { speech.style.display = "none"; }, 500);
+                        }, 2000);
+                        choice.style.display = "none"; // ซ่อนปุ่ม Yes/No
+                    } else {
+                        // Environment ยังไม่ถูกเปลี่ยน (ครั้งแรกที่กด)
+                        setTimeout(() => {
+                            speech.style.opacity = 0;
+                            setTimeout(() => {
+                                speech.style.display = "none";
+                                choice.style.display = "block";
+                            }, 500);
+                        }, 2000);
+                    }
+                    // *** สิ้นสุดการแก้ไข ***
 
+                } else if (clicked.name === "MyProject") {
+                    document.getElementById("projectPanel").style.display = "block";
                     if (catObject) {
                         const catPos = new THREE.Vector3();
                         catObject.getWorldPosition(catPos);
@@ -406,6 +489,18 @@
                         lerpStartTar.copy(controls.target);
                         lerpEndPos.copy(catPos).add(new THREE.Vector3(10, 5, 5));
                         lerpEndTar.copy(catTarget);
+                        lerpAlpha = 0;
+                        lerpActive = true;
+                    }
+                } else if (clicked.name === "Telescope") {
+                    document.getElementById("telescopeChoice").style.display = "block";
+                } else if (clicked.name === "Credit") {
+                    if (VIEWS.Credit) {
+                        const view = VIEWS.Credit;
+                        lerpStartPos.copy(camera.position);
+                        lerpStartTar.copy(controls.target);
+                        lerpEndPos.copy(view.pos);
+                        lerpEndTar.copy(view.tar);
                         lerpAlpha = 0;
                         lerpActive = true;
                     }
@@ -422,12 +517,9 @@
         }
         renderer.domElement.addEventListener('click', onPick);
 
-        // Close Project Panel
-        document.getElementById("closePanel").addEventListener("click", () => {
-            document.getElementById("projectPanel").style.display = "none";
-        });
+        // === Close Panel / Home ===
+        document.getElementById("closePanel").addEventListener("click", () => { document.getElementById("projectPanel").style.display = "none"; });
 
-        // Home Button
         document.getElementById("homeBtn").addEventListener("click", () => {
             lerpStartPos.copy(camera.position);
             lerpStartTar.copy(controls.target);
@@ -436,8 +528,64 @@
             lerpAlpha = 0;
             lerpActive = true;
             document.getElementById("projectPanel").style.display = "none";
+            exitTelescopeMode();
         });
 
+        // === Cat Choice Yes/No ===
+        
+        document.getElementById("catYes").addEventListener("click", () => {
+            document.getElementById("catChoice").style.display = "none";
+            if (!envChanged) {
+                const hdrUrl = "https://paulthebeatles.github.io/Port/HDR_blue_nebulae-1.hdr";
+                const pmremGen = new THREE.PMREMGenerator(renderer);
+                pmremGen.compileEquirectangularShader();
+
+                new THREE.RGBELoader().setDataType(THREE.UnsignedByteType).load(hdrUrl, tex => {
+                    const envMap = pmremGen.fromEquirectangular(tex).texture;
+                    scene.environment = envMap;
+                    scene.background = envMap;
+                    tex.dispose();
+                    pmremGen.dispose();
+
+                    envChanged = true; // *** ตั้งค่าสถานะว่า Environment ถูกเปลี่ยนแล้ว ***
+
+                    const speech = document.getElementById("catSpeech");
+                    speech.textContent = "Meow! Find the telescope";
+                    speech.style.display = "block";
+                    speech.style.opacity = 1;
+
+                    setTimeout(() => {
+                        speech.style.opacity = 0;
+                        setTimeout(() => { speech.style.display = "none"; }, 500);
+                    }, 2000);
+                });
+            }
+        });
+
+        document.getElementById("catNo").addEventListener("click", () => { document.getElementById("catChoice").style.display = "none"; });
+
+        // === Telescope Choice Yes/No ===
+        document.getElementById("telescopeYes").addEventListener("click", () => {
+            document.getElementById("telescopeChoice").style.display = "none";
+            const telescopeObj = clickable.find(obj => obj.name === "Telescope");
+            if (telescopeObj) {
+                const telescopePos = new THREE.Vector3();
+                telescopeObj.getWorldPosition(telescopePos);
+                
+                lerpStartPos.copy(camera.position);
+                lerpStartTar.copy(controls.target);
+                lerpEndPos.set(telescopePos.x, telescopePos.y + 80, telescopePos.z);
+                lerpEndTar.set(telescopePos.x, telescopePos.y + 100, telescopePos.z);
+                lerpAlpha = 0;
+                lerpActive = true;
+            }
+        });
+
+        document.getElementById("telescopeNo").addEventListener("click", () => {
+            document.getElementById("telescopeChoice").style.display = "none";
+        });
+
+        // === Animation Loop ===
         function loop() {
             if (lerpActive) {
                 lerpAlpha += 0.02;
